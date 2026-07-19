@@ -1,7 +1,6 @@
 {
   "extends": "@repo/typescript-config/nextjs.json",
   "compilerOptions": {
-    "baseUrl": ".",
     "paths": {
       "~/*": ["./*"]
     },
@@ -20,3 +19,4 @@
   ],
   "exclude": ["node_modules"]
 }
+ 
