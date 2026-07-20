@@ -1,28 +1,42 @@
-import { db } from "@repo/database";
+import { db, eq } from "@repo/database";
 import { usersTable } from "@repo/database/schema";
 import { env } from "../env";
 import { googleOAuth2Client } from "../clients/google-oauth";
-import { GetAuthenticationMethodOutputSchema } from "./model";
+import {
+  deleteAccountSchema,
+  DeleteAccountSchemaType,
+  getCurrentUserSchema,
+  GetCurrentUserSchemaType,
+  getUserByIdSchema,
+  GetUserByIdSchemaType,
+} from "./model";
 
 class UserService {
-  public async getAuthenticationMethods(): Promise<
-    ReadonlyArray<GetAuthenticationMethodOutputSchema>
-  > {
-    const supportedAuthenticationProviders: GetAuthenticationMethodOutputSchema[] = [];
+  public async getCurrentUser(payload: GetCurrentUserSchemaType) {
+    const { id } = await getCurrentUserSchema.parseAsync(payload);
 
-    const isGoogleConfigured = !!(env.GOOGLE_OAUTH_CLIENT_ID && env.GOOGLE_OAUTH_CLIENT_SECRET);
+    const [user] = await db.select().from(usersTable).where(eq(usersTable.id, id));
+    if (!user) throw new Error(`user with id ${id} not found!!!`);
+    return { user };
+  }
 
-    if (isGoogleConfigured) {
-      const url = googleOAuth2Client.generateAuthUrl();
-      supportedAuthenticationProviders.push({
-        provider: "GOOGLE_OAUTH",
-        displayName: "Google",
-        displayText: "Signin with Google",
-        authUrl: url,
-      });
-    }
+  public async getUserById(payload: GetUserByIdSchemaType) {
+    const { id } = await getUserByIdSchema.parseAsync(payload);
 
-    return supportedAuthenticationProviders;
+    const [user] = await db.select().from(usersTable).where(eq(usersTable.id, id));
+    if (!user) throw new Error(`user with id ${id} not found!!!`);
+    return { user };
+  }
+
+  public async deleteAccount(payload: DeleteAccountSchemaType) {
+    const { id } = await deleteAccountSchema.parseAsync(payload);
+
+    const [deletedUser] = await db
+      .delete(usersTable)
+      .where(eq(usersTable.id, id))
+      .returning({ id: usersTable.id });
+
+    return { id: deletedUser?.id };
   }
 }
 

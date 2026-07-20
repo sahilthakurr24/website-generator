@@ -2,7 +2,7 @@ import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { db } from "@repo/database";
 import { nextCookies } from "better-auth/next-js";
-import { env } from "./env.js";
+import { env } from "./env";
 import {
   accountsTable,
   sessionsTable,

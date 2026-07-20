@@ -9,3 +9,24 @@ export const getAuthenticationMethodOutputSchema = z.object({
 export type GetAuthenticationMethodOutputSchema = z.infer<
   typeof getAuthenticationMethodOutputSchema
 >;
+
+export const getCurrentUserSchema = z.object({
+  id : z.string().describe('Id of the user')
+})
+
+export type GetCurrentUserSchemaType = z.infer<typeof getCurrentUserSchema>;
+
+
+export const getUserByIdSchema = z.object({
+  id : z.string().describe('Id of the user')
+})
+
+export type GetUserByIdSchemaType = z.infer<typeof getUserByIdSchema>;
+
+
+export const deleteAccountSchema = z.object({
+  id : z.string().describe('Id of the user')
+});
+
+
+export type DeleteAccountSchemaType = z.infer<typeof deleteAccountSchema>
