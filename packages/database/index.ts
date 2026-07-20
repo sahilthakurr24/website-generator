@@ -8,3 +8,4 @@ export const db = drizzle(env.DATABASE_URL, {
 });
 export * from "drizzle-orm";
 export default db;
+

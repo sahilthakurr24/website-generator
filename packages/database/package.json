@@ -6,6 +6,10 @@
     "db:generate": "dotenv -- drizzle-kit generate",
     "dev": "dotenv -- drizzle-kit studio"
   },
+  "exports": {
+    ".": "./index.ts",
+    "./schema": "./schema.ts"
+  },
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",

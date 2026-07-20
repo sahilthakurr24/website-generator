@@ -1,0 +1,21 @@
+{
+  "name": "@repo/auth",
+  "version": "1.0.0",
+  "private": true,
+  "type" : "module",
+  "exports" : {
+   "." : "./index.ts"
+  },
+  "devDependencies": {
+    "@repo/eslint-config": "workspace:*",
+    "@repo/database" : "workspace:*",
+    "@repo/typescript-config": "workspace:*",
+    "@types/node": "^22.20.1",
+    "dotenv-cli": "^11.0.0",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "better-auth": "^1.6.23",
+    "zod": "^4.4.3"
+  }
+}
