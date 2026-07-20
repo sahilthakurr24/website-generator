@@ -9,7 +9,7 @@ export const router = tRPCContext.router;
 
 export const publicProcedure = tRPCContext.procedure;
 export const authenticatedProcedure = tRPCContext.procedure.use(async ({ ctx, next }) => {
-  if (!ctx.session || !ctx.user) {
+  if (!ctx.session || !ctx.user || !ctx.user?.id) {
     throw new TRPCError({
       code: "UNAUTHORIZED",
       message: "You must be signin to perform this action",
