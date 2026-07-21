@@ -7,8 +7,8 @@ const testFunction: InngestFn = inngest.createFunction(
     id: "test-function",
     triggers: [{ event: "test-function" }],
   },
-  async ({ event }) => {
-    const result = await websiteGenerator.run(event.data.prompt);
+  async ({ event, step }) => {
+    const result = await websiteGenerator.run(event.data.prompt, { step });
     return result.output;
   },
 );
