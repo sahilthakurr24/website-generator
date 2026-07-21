@@ -3,6 +3,7 @@
   "private": true,
   "scripts": {
     "build": "dotenv -- turbo build",
+    "inngest:dev" : "pnpm dlx inngest-cli dev -u http://localhost:8000/api/inngest",
     "dev": "dotenv -- turbo dev",
     "db:generate": "dotenv -- turbo db:generate",
     "db:migrate": "dotenv -- turbo db:migrate",

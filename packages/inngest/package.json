@@ -1,0 +1,23 @@
+{
+  "name": "@repo/inngest",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./index.ts"
+  },
+  "devDependencies": {
+    "@repo/eslint-config": "workspace:*",
+    "@repo/typescript-config": "workspace:*",
+    "@types/node": "^22.20.1",
+    "dotenv-cli": "^11.0.0",
+    "tsx": "^4.23.1",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "@inngest/agent-kit": "^0.13.2",
+    "dotenv": "^17.4.2",
+    "inngest": "^4.13.0",
+    "zod": "^4.4.3"
+  }
+}
