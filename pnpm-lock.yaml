@@ -466,6 +466,9 @@ importers:
       '@repo/auth':
         specifier: workspace:*
         version: link:../auth
+      '@repo/inngest':
+        specifier: workspace:*
+        version: link:../inngest
       '@repo/services':
         specifier: workspace:*
         version: link:../services
