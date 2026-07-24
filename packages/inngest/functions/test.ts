@@ -46,7 +46,11 @@ const testFunction: InngestFn = inngest.createFunction(
     }
 
     if (createBasePrompt.success === false) {
-      return "Something went wrong while creating the base prompt";
+      return {
+        message: "Something went wrong while creating the base prompt",
+        data: null,
+        success: false,
+      };
     }
 
     const websiteGeneratorResponse = await websiteGenerator.run(`
@@ -59,7 +63,11 @@ const testFunction: InngestFn = inngest.createFunction(
       User request:
       ${event.data.prompt}
       `);
-    return websiteGeneratorResponse.output;
+    return {
+      message: "Response has been generated!!",
+      data: websiteGeneratorResponse.output,
+      success: true,
+    };
   },
 );
 
