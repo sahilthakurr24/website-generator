@@ -11,8 +11,8 @@
     "check-types": "next typegen && tsc --noEmit"
   },
   "dependencies": {
-    "@repo/auth" : "workspace:*",
     "@hookform/resolvers": "^5.4.0",
+    "@monaco-editor/react": "^4.7.0",
     "@radix-ui/react-accordion": "^1.2.16",
     "@radix-ui/react-alert-dialog": "^1.1.19",
     "@radix-ui/react-aspect-ratio": "^1.1.11",
@@ -39,6 +39,7 @@
     "@radix-ui/react-toggle": "^1.1.14",
     "@radix-ui/react-toggle-group": "^1.1.15",
     "@radix-ui/react-tooltip": "^1.2.12",
+    "@repo/auth": "workspace:*",
     "@repo/trpc": "workspace:*",
     "@t3-oss/env-nextjs": "^0.13.11",
     "@tailwindcss/postcss": "^4.3.3",
