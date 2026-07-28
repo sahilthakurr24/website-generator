@@ -1,8 +1,7 @@
 import express from "express";
 import { logger } from "@repo/logger";
 import cors from "cors";
-import { inngestClient, serve } from "@repo/inngest";
-import {functions} from "@repo/inngest/functions";
+
 import * as trpcExpress from "@trpc/server/adapters/express";
 import { generateOpenApiDocument, createOpenApiExpressMiddleware } from "trpc-to-openapi";
 import { apiReference } from "@scalar/express-api-reference";
@@ -28,8 +27,8 @@ if (env.NODE_ENV !== "prod") {
 
 app.use(express.json());
 
-//inngest configuration
-app.use("/api/inngest", serve({ client: inngestClient, functions }));
+// //inngest configuration
+// app.use("/api/inngest", serve({ client: inngestClient, functions }));
 
 app.get("/", (req, res) => {
   return res.json({ message: "Streamyst is up and running..." });

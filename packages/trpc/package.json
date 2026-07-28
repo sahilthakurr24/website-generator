@@ -2,7 +2,7 @@
   "name": "@repo/trpc",
   "version": "1.0.0",
   "private": true,
-  "type" : "module",
+  "type": "module",
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
@@ -12,7 +12,6 @@
   },
   "dependencies": {
     "@repo/auth": "workspace:*",
-    "@repo/inngest" : "workspace:*",
     "@repo/services": "workspace:*",
     "@trpc/client": "^11.18.0",
     "@trpc/server": "^11.18.0",

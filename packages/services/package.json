@@ -9,6 +9,7 @@
     "typescript": "^5.9.3"
   },
   "dependencies": {
+    "@openai/agents": "^0.14.0",
     "@repo/database": "workspace:*",
     "@repo/logger": "workspace:*",
     "google-auth-library": "^10.9.0",

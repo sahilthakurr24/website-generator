@@ -1,11 +1,9 @@
-import z, { string } from "zod";
+import z from "zod";
 
 export const createChatInputSchema = z.object({
-  prompt: z.string(),
+  userPrompt: z.string(),
 });
 
 export const createChatOutputSchema = z.object({
-  prompt: z.array(z.string()),
-  uiPrompt: z.array(z.string()),
-  success: z.boolean().default(false)
+  output: z.string().optional().describe("response of ai "),
 });
