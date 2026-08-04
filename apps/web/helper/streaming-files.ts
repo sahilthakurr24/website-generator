@@ -91,3 +91,13 @@ export function findFileByPath(
 
   return null;
 }
+
+export function findFirstFile(files: FileItem[]): FileItem | null {
+  for (const item of files) {
+    if (item.type === "file") return item;
+    const nested = findFirstFile(item.children ?? []);
+    if (nested) return nested;
+  }
+
+  return null;
+}

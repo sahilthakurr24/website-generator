@@ -2,15 +2,8 @@ import { authenticatedProcedure, publicProcedure, router } from "../../trpc";
 import { generatePath } from "../../utils/path-generator";
 import { createChatInputSchema, createChatOutputSchema } from "./model";
 
-
-
 import { agentService } from "../../services";
-
-interface CreateBasePromptType {
-  prompt: Array<string>;
-  uiPrompt: Array<string>;
-  success: boolean;
-}
+import { TRPCError } from "@trpc/server";
 
 const TAGS = ["CHAT"];
 const getPath = generatePath("chat");
@@ -21,11 +14,16 @@ export const chatRouter = router({
     .input(createChatInputSchema)
     .output(createChatOutputSchema)
     .mutation(async ({ input }) => {
-      const { userPrompt } = input;
-      // getting the template
-      const { createBasePrompt } = await agentService.getTemplate({ userPrompt });
+      const { prompt, uiPrompt, success, userPrompt } = input;
+
+      const createBasePrompt = { prompt, uiPrompt, success, userPrompt };
       const { response } = await agentService.getWebsiteGeneratorResponse({ createBasePrompt });
-      console.log(response);
-      return { output: response };
+      if (!response)
+        throw new TRPCError({
+          message: "Unable to generate the response",
+          code: "INTERNAL_SERVER_ERROR",
+        });
+
+     return  {response};
     }),
 });

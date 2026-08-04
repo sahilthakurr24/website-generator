@@ -9,53 +9,36 @@ import { useSearchParams } from "next/navigation";
 import { FileExplorer } from "~/components/ui/file-explorer";
 import { TabView } from "~/components/ui/tab-view";
 import { CodeEditor } from "~/components/ui/code-editor";
-import { useRealtime } from "@repo/inngest/react";
-import { getRealtimeToken } from "~/app/actions/getRealTimeToken";
-import {
-  findFileByPath,
-  getStreamingFileUpdates,
-  updateFilesFromStream,
-} from "~/helper/streaming-files";
+import { findFileByPath, findFirstFile, updateFilesFromStream } from "~/helper/streaming-files";
+import { normalizeFileContent } from "~/helper/file-content";
+import { useTemplate } from "~/hooks/api/template";
 
-type AgentStreamChunk = {
-  event?: string;
-  sequenceNumber?: number;
-  data?: {
-    delta?: unknown;
-  };
-};
-
-type StreamMessageData = {
-  event: "text.delta";
-
-  content: string;
-  path: string;
-};
 function Builder() {
   const searchParams = useSearchParams();
-  const prompt = searchParams.get("prompt") ?? "";
+  const uPrompt = searchParams.get("prompt") ?? "";
+
   const [userPrompt, setUserPrompt] = useState<string>("");
 
   const [loading, setLoading] = useState(false);
   const [templateSet, setTemplateSet] = useState(false);
   const { createChatAsync, isError, isPending, isSuccess, status } = useChat();
+  const {
+    getTemplateAsync,
+    isError: tempError,
+    isPending: tempIsPending,
+    isSuccess: tempIsSuccess,
+    status: tempSatus,
+  } = useTemplate();
 
   const [currentStep, setCurrentStep] = useState(1);
   const [activeTab, setActiveTab] = useState<"code" | "preview">("code");
   const [selectedFilePath, setSelectedFilePath] = useState<string | null>(null);
   const [generationId] = useState(() => crypto.randomUUID());
-  const [currFile, setCurrFile] = useState<FileItem | null>(null);
 
   const [steps, setSteps] = useState<Step[]>([]);
   const [files, setFiles] = useState<FileItem[]>([]);
   const seenFilePaths = useRef(new Set<string>());
-  const { messages, connectionStatus } = useRealtime({
-    channel: `user:1:generation:${generationId}`,
-    topics: ["agent_stream"],
-    token: async () => await getRealtimeToken("1", generationId),
-  });
 
-  // const { streamedResponse, lastAgentEvent } = useMemo(() => {
   //   const chunksBySequence = new Map<number, AgentStreamChunk>();
 
   //   for (const message of messages.all) {
@@ -109,93 +92,73 @@ function Builder() {
   //   [files, selectedFilePath],
   // );
 
+  const selectedFile = useMemo(
+    () => findFileByPath(files, selectedFilePath),
+    [files, selectedFilePath],
+  );
+
   useEffect(() => {
-    let originalFiles = [...files];
-    let updateHappened = false;
-    steps
-      .filter(({ status }) => status === "pending")
-      .map((step) => {
-        updateHappened = true;
-        if (step?.type === StepType.CreateFile) {
-          let parsedPath = step.path?.split("/") ?? []; // ["src", "components", "App.tsx"]
-          let currentFileStructure = [...originalFiles]; // {}
-          let finalAnswerRef = currentFileStructure;
+    const pendingSteps = steps.filter((step) => step.status === "pending");
+    if (!pendingSteps.length) return;
 
-          let currentFolder = "";
-          while (parsedPath.length) {
-            currentFolder = `${currentFolder}/${parsedPath[0]}`;
-            let currentFolderName = parsedPath[0];
-            parsedPath = parsedPath.slice(1);
+    const fileUpdates = pendingSteps
+      .filter((step) => step.type === StepType.CreateFile && step.path)
+      .map((step) => ({
+        path: step.path!.replace(/^\//, ""),
+        content: normalizeFileContent(step.code ?? ""),
+        isComplete: true,
+      }));
 
-            if (!parsedPath.length) {
-              // final file
-              let file = currentFileStructure.find((x) => x.path === currentFolder);
-              if (!file) {
-                currentFileStructure.push({
-                  name: currentFolderName!,
-                  type: "file",
-                  path: currentFolder,
-                  content: step.code!,
-                });
-              } else {
-                file.content = step.code!;
-              }
-            } else {
-              /// in a folder
-              let folder = currentFileStructure.find((x) => x.path === currentFolder);
-              if (!folder) {
-                // create the folder
-                currentFileStructure.push({
-                  name: currentFolderName!,
-                  type: "folder",
-                  path: currentFolder,
-                  children: [],
-                });
-              }
-
-              currentFileStructure = currentFileStructure.find(
-                (x) => x.path === currentFolder,
-              )!.children!;
-            }
-          }
-          originalFiles = finalAnswerRef;
-        }
-      });
-
-    if (updateHappened) {
-      setFiles(originalFiles);
-      setSteps((steps) =>
-        steps.map((s: Step) => {
-          return {
-            ...s,
-            status: "completed",
-          };
-        }),
-      );
+    if (fileUpdates.length) {
+      setFiles((current) => updateFilesFromStream(current, fileUpdates));
     }
-  }, [steps, files]);
+
+    setSteps((current) =>
+      current.map((step) =>
+        step.status === "pending" ? { ...step, status: "completed" as const } : step,
+      ),
+    );
+  }, [steps]);
 
   async function init() {
-    if (!prompt.trim()) return;
-    setLoading(true);
+    if (!uPrompt.trim()) return;
+    setTemplateSet(true);
 
-    const { uiPrompt } = await createChatAsync({
-      generationId,
-      prompt: prompt.trim(),
-    });
+    const {
+      prompt,
+      uiPrompt,
+      success,
+      userPrompt: initialUserPrompt,
+    } = await getTemplateAsync({ userPrompt: uPrompt.trim() });
 
     setTemplateSet(true);
-    const parsedSteps = parseXml(uiPrompt[0]).map((step: Step) => ({
-      ...step,
-      status: "pending",
-    }));
+
     // getting the steps
     setSteps(
-      parseXml(uiPrompt[0]).map((step: Step) => ({
-        ...step,
-        status: "pending",
-      })),
+      parseXml(uiPrompt[0])?.map((step: Step) => {
+        return { ...step, status: "pending" };
+      }),
     );
+
+    setLoading(true);
+
+    const result = await createChatAsync({
+      userPrompt: initialUserPrompt,
+      uiPrompt,
+      prompt,
+      success,
+    });
+
+    setSteps((s) => {
+      const nextId = s.reduce((max, step) => Math.max(max, step.id), 0) + 1;
+      return [
+        ...s,
+        ...parseXml(result.response, nextId).map((step) => ({
+          ...step,
+          status: "pending" as const,
+        })),
+      ];
+    });
 
     setLoading(false);
   }
@@ -213,11 +176,9 @@ function Builder() {
   // }, [messages.all]);
 
   useEffect(() => {
-    const currentFile = findFileByPath(files, selectedFilePath);
-
-    if (!currentFile) return;
-
-    setCurrFile(currentFile);
+    if (selectedFilePath) return;
+    const firstFile = findFirstFile(files);
+    if (firstFile) setSelectedFilePath(firstFile.path);
   }, [files, selectedFilePath]);
 
   useEffect(() => {
@@ -228,7 +189,7 @@ function Builder() {
     <div className="min-h-screen bg-gray-900 flex flex-col">
       <header className="bg-gray-800 border-b border-gray-700 px-6 py-4">
         <h1 className="text-xl font-semibold text-gray-100">Website Builder</h1>
-        <p className="text-sm text-gray-400 mt-1">Prompt: {prompt}</p>
+        <p className="text-sm text-gray-400 mt-1">Prompt: {uPrompt}</p>
       </header>
 
       <div className="flex-1 overflow-hidden">
@@ -297,9 +258,9 @@ function Builder() {
           </div>
           <div className="col-span-2 bg-gray-900 rounded-lg shadow-lg p-4 h-[calc(100vh-8rem)]">
             <TabView activeTab={activeTab} onTabChange={setActiveTab} />
-            <div className="h-[calc(100%-4rem)]">
+            <div className="flex h-[calc(100%-3rem)] min-h-0 flex-col">
               {activeTab === "code" ? (
-                <CodeEditor file={currFile} />
+                <CodeEditor file={selectedFile} />
               ) : (
                 // <PreviewFrame webContainer={webcontainer} files={files} />
                 <div>todo</div>

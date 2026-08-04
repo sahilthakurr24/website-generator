@@ -1,3 +1,4 @@
+import { normalizeFileContent } from "~/helper/file-content";
 import { Step, StepType } from "~/types/step";
 
 /*
@@ -28,7 +29,7 @@ import { Step, StepType } from "~/types/step";
  *
  * The input can have strings in the middle they need to be ignored
  */
-export function parseXml(response: string | undefined): Step[] {
+export function parseXml(response: string | undefined, startId = 1): Step[] {
   // Extract the XML content between <boltArtifact> tags
   if (!response) return [];
   const xmlMatch = response.match(/<boltArtifact[^>]*>([\s\S]*?)<\/boltArtifact>/);
@@ -40,7 +41,7 @@ export function parseXml(response: string | undefined): Step[] {
   const xmlContent = xmlMatch[1];
   if (typeof xmlContent === "undefined" || typeof xmlContent !== "string") return [];
   const steps: Step[] = [];
-  let stepId = 1;
+  let stepId = startId;
 
   // Extract artifact title
   const titleMatch = response.match(/title="([^"]*)"/);
@@ -71,7 +72,7 @@ export function parseXml(response: string | undefined): Step[] {
         description: "",
         type: StepType.CreateFile,
         status: "pending",
-        code: content?.trim(),
+        code: normalizeFileContent(content),
         path: filePath,
       });
     } else if (type === "shell") {
