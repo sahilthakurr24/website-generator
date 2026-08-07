@@ -12,12 +12,28 @@ import { CodeEditor } from "~/components/ui/code-editor";
 import { findFileByPath, findFirstFile, updateFilesFromStream } from "~/helper/streaming-files";
 import { normalizeFileContent } from "~/helper/file-content";
 import { useTemplate } from "~/hooks/api/template";
+import { useWebcontainer } from "~/hooks/usewebcontainer";
+
+type WebContainerFile = {
+  file: {
+    contents: string;
+  };
+};
+
+type WebContainerDirectory = {
+  directory: WebContainerFiles;
+};
+
+type WebContainerFiles = {
+  [name: string]: WebContainerFile | WebContainerDirectory;
+};
 
 function Builder() {
   const searchParams = useSearchParams();
   const uPrompt = searchParams.get("prompt") ?? "";
 
   const [userPrompt, setUserPrompt] = useState<string>("");
+  const webContainer = useWebcontainer();
 
   const [loading, setLoading] = useState(false);
   const [templateSet, setTemplateSet] = useState(false);
@@ -163,17 +179,42 @@ function Builder() {
     setLoading(false);
   }
 
-  // useEffect(() => {
-  //  messages.all.forEach((message) => {
-  //     const data = message.data as StreamMessageData;
-  //     if (data && data.event === "text.delta") {
-  //       console.log("data:", data.content);
-  //       console.log("data",message);
-  //       setSteps((prev) => [...prev, ...parseXml(data.content)]);
-  //     }
-  //   });
+  //create a anew useeffect which renders the files into the webcontainer
 
-  // }, [messages.all]);
+  useEffect(() => {
+    function createMountStructure(files: Array<FileItem>) {
+      const mountStructure: WebContainerFiles = {};
+      files?.map((f) => {
+        //for simple file
+        if (f.children === undefined && f.type === "file") {
+          mountStructure[f.name] = {
+            file: {
+              contents: f.content!,
+            },
+          };
+        } else {
+          //for folder (recursive files) structure
+          const directory: WebContainerFiles = {};
+          f.children?.forEach((recursiveFile) => {
+            directory[recursiveFile.name] = {
+              file: {
+                contents: recursiveFile.content!,
+              },
+            };
+
+            mountStructure[f.name] = {
+              directory,
+            };
+          });
+        }
+      });
+      return mountStructure;
+    }
+
+    const mountStructure = createMountStructure(files);
+
+    webContainer?.mount(mountStructure);
+  }, [files, webContainer]);
 
   useEffect(() => {
     if (selectedFilePath) return;

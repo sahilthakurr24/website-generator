@@ -184,6 +184,9 @@ importers:
       '@trpc/react-query':
         specifier: ^11.18.0
         version: 11.18.0(@tanstack/react-query@5.101.2(react@19.2.7))(@trpc/client@11.18.0(@trpc/server@11.18.0(typescript@5.9.2))(typescript@5.9.2))(@trpc/server@11.18.0(typescript@5.9.2))(react@19.2.7)(typescript@5.9.2)
+      '@webcontainer/api':
+        specifier: ^1.6.4
+        version: 1.6.4
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -2725,6 +2728,9 @@ packages:
   '@typescript-eslint/visitor-keys@8.64.0':
     resolution: {integrity: sha512-mrtuL8Nsn6gi2H4mo5KMTp823M+3Q19Ew/i+Zlikq20tIMm99C3Ez0dCmkWWnxut20esQvTg8aUSEhMcAOXhEw==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
+
+  '@webcontainer/api@1.6.4':
+    resolution: {integrity: sha512-r9sHCXg1FcC1AMgppGwAc0vYWaQhqvg282cnsuPbJEzYnWifAdCVvg+8ngJUEHyHcomhJJp+/zuytite4ITHLw==}
 
   accepts@2.0.0:
     resolution: {integrity: sha512-5cvg6CtKwfgdmVqY1WIiXKc3Q1bkRqGLi+2W/6ao+6Y7gu/RCwRuAhGEzh5B4KlszSuTLgZYuqFqo5bImjNKng==}
@@ -6901,6 +6907,8 @@ snapshots:
     dependencies:
       '@typescript-eslint/types': 8.64.0
       eslint-visitor-keys: 5.0.1
+
+  '@webcontainer/api@1.6.4': {}
 
   accepts@2.0.0:
     dependencies:
