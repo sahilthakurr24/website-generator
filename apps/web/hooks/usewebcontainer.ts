@@ -1,22 +1,32 @@
 "use client";
-import { useState, useEffect } from "react";
+
+import { useEffect, useRef, useState } from "react";
 import { WebContainer } from "@webcontainer/api";
 
 export function useWebcontainer() {
   const [webContainer, setWebContainer] = useState<WebContainer>();
-  let instance: WebContainer;
-  async function boot() {
-    instance = await WebContainer.boot();
+  const instanceRef = useRef<WebContainer | null>(null);
+
+  async function boot(): Promise<WebContainer> {
+    if (instanceRef.current) {
+      return instanceRef.current;
+    }
+
+    const instance = await WebContainer.boot();
+    instanceRef.current = instance;
     setWebContainer(instance);
+
+    return instance;
   }
 
   useEffect(() => {
     boot();
 
     return () => {
-      instance?.teardown();
+      instanceRef.current?.teardown();
+      instanceRef.current = null;
     };
   }, []);
 
-  return webContainer;
+  return { webContainer, boot };
 }

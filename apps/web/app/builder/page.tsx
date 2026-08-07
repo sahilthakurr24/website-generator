@@ -13,6 +13,7 @@ import { findFileByPath, findFirstFile, updateFilesFromStream } from "~/helper/s
 import { normalizeFileContent } from "~/helper/file-content";
 import { useTemplate } from "~/hooks/api/template";
 import { useWebcontainer } from "~/hooks/usewebcontainer";
+import { PreviewFrame } from "~/components/ui/preview-frame";
 
 type WebContainerFile = {
   file: {
@@ -33,7 +34,7 @@ function Builder() {
   const uPrompt = searchParams.get("prompt") ?? "";
 
   const [userPrompt, setUserPrompt] = useState<string>("");
-  const webContainer = useWebcontainer();
+  const { webContainer } = useWebcontainer();
 
   const [loading, setLoading] = useState(false);
   const [templateSet, setTemplateSet] = useState(false);
@@ -182,36 +183,27 @@ function Builder() {
   //create a anew useeffect which renders the files into the webcontainer
 
   useEffect(() => {
-    function createMountStructure(files: Array<FileItem>) {
+    function createMountStructure(files: FileItem[]): WebContainerFiles {
       const mountStructure: WebContainerFiles = {};
-      files?.map((f) => {
-        //for simple file
-        if (f.children === undefined && f.type === "file") {
-          mountStructure[f.name] = {
+
+      for (const file of files) {
+        if (file.type === "file") {
+          mountStructure[file.name] = {
             file: {
-              contents: f.content!,
+              contents: file.content ?? "",
             },
           };
         } else {
-          //for folder (recursive files) structure
-          const directory: WebContainerFiles = {};
-          f.children?.forEach((recursiveFile) => {
-            directory[recursiveFile.name] = {
-              file: {
-                contents: recursiveFile.content!,
-              },
-            };
-
-            mountStructure[f.name] = {
-              directory,
-            };
-          });
+          mountStructure[file.name] = {
+            directory: createMountStructure(file.children ?? []),
+          };
         }
-      });
+      }
+
       return mountStructure;
     }
-
     const mountStructure = createMountStructure(files);
+    console.log("mountStrucutre:", mountStructure);
 
     webContainer?.mount(mountStructure);
   }, [files, webContainer]);
@@ -303,8 +295,7 @@ function Builder() {
               {activeTab === "code" ? (
                 <CodeEditor file={selectedFile} />
               ) : (
-                // <PreviewFrame webContainer={webcontainer} files={files} />
-                <div>todo</div>
+                <PreviewFrame webContainer={webContainer} />
               )}
             </div>
           </div>
